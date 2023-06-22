@@ -12,7 +12,7 @@ const Container = styled("div")({
   // width: "50%",
 });
 
-const PassowrdContent = styled("div")({
+const PasswordContent = styled("div")({
   color: "#ffffff",
   backgroundColor: "#02103f",
   padding: 10,
@@ -40,4 +40,4 @@ const Content = styled("div")({
   margin: "10px 0px",
 });
 
-export { Title, Container, PassowrdContent, NewIconButton, LengthContainer, Content };
+export { Title, Container, PasswordContent, NewIconButton, LengthContainer, Content };

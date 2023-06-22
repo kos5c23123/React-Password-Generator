@@ -1,22 +1,17 @@
 import React, { useState, useEffect } from "react";
-import Checkbox from "@mui/material/Checkbox";
-import Slider from "@mui/material/Slider";
-import Input from "@mui/material/Input";
-import TextField from "@mui/material/TextField";
-import Button from "@mui/material/Button";
-
-import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import { Checkbox, Slider, Input, TextField, Button } from "@mui/material";
+import LoopIcon from '@mui/icons-material/Loop';
 
 import {
   Title,
   Container,
-  PassowrdContent,
+  PasswordContent,
   NewIconButton,
   LengthContainer,
   Content,
 } from "./CustomComponent";
 
-const defaultPaswsword = () => {
+function defaultPassword(): string {
   const length = 8;
   const charset =
     "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
@@ -25,22 +20,22 @@ const defaultPaswsword = () => {
     retVal += charset.charAt(Math.floor(Math.random() * n));
   }
   return retVal;
-};
+}
+
+const charOfUpperCase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const charOfLowerCase = "abcdefghijklmnopqrstuvwxyz";
+const charOfNumbers = "0123456789";
+const charOfSymbols = "!@#$%^&*";
 
 export default function Password() {
-  const [password, setPassword] = useState<string>(() => defaultPaswsword());
+  const [password, setPassword] = useState<string>(() => defaultPassword());
   const [uppercase, setUppercase] = useState<boolean>(true);
   const [lowercase, setLowercase] = useState<boolean>(true);
   const [numbers, setNumbers] = useState<boolean>(true);
   const [symbols, setSymbols] = useState<boolean>(true);
   const [length, setLength] = useState<number>(8);
-  const [click, setClick] = useState<boolean>(false);
 
-  useEffect(() => {
-    const charOfUpperCase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    const charOfLowerCase = "abcdefghijklmnopqrstuvwxyz";
-    const charOfNumbers = "0123456789";
-    const charOfSymbols = "!@#$%^&*";
+  const ChangePassword = () => {
     let charset = "";
     if (uppercase) charset += charOfUpperCase;
     if (lowercase) charset += charOfLowerCase;
@@ -50,13 +45,51 @@ export default function Password() {
     for (let i = 0, n = charset.length; i < length; ++i) {
       retVal += charset.charAt(Math.floor(Math.random() * n));
     }
-    setPassword(retVal);
-  }, [uppercase, lowercase, numbers, symbols, length, click]);
+    return retVal;
+  };
+
+  useEffect(() => {
+    const password = ChangePassword();
+    setPassword(password);
+  }, [uppercase, lowercase, numbers, symbols, length]);
+
+  const handleUppercaseChange = () => {
+    setUppercase(!uppercase);
+  };
+
+  const handleLowercaseChange = () => {
+    setLowercase(!lowercase);
+  };
+
+  const handleNumbersChange = () => {
+    setNumbers(!numbers);
+  };
+
+  const handleSymbolsChange = () => {
+    setSymbols(!symbols);
+  };
+
+  const handleGeneratePassword = () => {
+    const password = ChangePassword();
+    setPassword(password);
+  };
+
+  const handleLengthInputChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    let value = Number(event.target.value);
+    if (value > 128) value = 128;
+    if (value < 6) value = 6;
+    setLength(value);
+
+    const password = ChangePassword();
+    setPassword(password);
+  };
 
   return (
     <Container>
       <Title>Generated Password</Title>
-      <PassowrdContent>
+      <PasswordContent>
         <TextField
           id="standard-search"
           type="search"
@@ -76,11 +109,11 @@ export default function Password() {
         <NewIconButton
           color="primary"
           aria-label="Copy"
-          onClick={() => navigator.clipboard.writeText(password)}
+          onClick={handleGeneratePassword}
         >
-          <ContentCopyIcon />
+          <LoopIcon />
         </NewIconButton>
-      </PassowrdContent>
+      </PasswordContent>
       <Title>Lengths</Title>
       <LengthContainer>
         <Slider
@@ -93,12 +126,7 @@ export default function Password() {
         <Input
           value={length}
           size="small"
-          onChange={(e) => {
-            let value = Number(e.target.value);
-            if (value > 128) value = 128;
-            if (value < 6) value = 6;
-            setLength(value as number);
-          }}
+          onChange={handleLengthInputChange}
           inputProps={{
             min: 6,
             max: 128,
@@ -116,62 +144,30 @@ export default function Password() {
       <Title>Setting</Title>
       <Content>
         A-Z
-        <Checkbox
-          checked={uppercase}
-          onChange={() => setUppercase(!uppercase)}
-        />
+        <Checkbox checked={uppercase} onChange={handleUppercaseChange} />
       </Content>
       <Content>
         a-z
-        <Checkbox
-          checked={lowercase}
-          onChange={() => setLowercase(!lowercase)}
-        />
+        <Checkbox checked={lowercase} onChange={handleLowercaseChange} />
       </Content>
       <Content>
         0-9
-        <Checkbox checked={numbers} onChange={() => setNumbers(!numbers)} />
+        <Checkbox checked={numbers} onChange={handleNumbersChange} />
       </Content>
       <Content>
         !@#$%
-        <Checkbox checked={symbols} onChange={() => setSymbols(!symbols)} />
+        <Checkbox checked={symbols} onChange={handleSymbolsChange} />
       </Content>
       <Button
         variant="contained"
         fullWidth
-        onClick={() => setClick(!click)}
+        onClick={() => navigator.clipboard.writeText(password)}
         sx={{
           background: "linear-gradient(to right bottom, #0065e0, #6B0AC9)",
         }}
       >
-        Generate New Password
+        Copy Password
       </Button>
-      {/* <div>
-        min number
-        <Input
-          value={minInputNumber}
-          size="small"
-          onChange={(e) => setMinInputNumber(Number(e.target.value))}
-          inputProps={{
-            min: 1,
-            max: getMinNumber(),
-            type: "number",
-            "aria-labelledby": "input-slider",
-          }}
-        />
-        min !@#$%
-        <Input
-          value={minInputSymbols}
-          size="small"
-          onChange={(e) => setMinInputSymbols(Number(e.target.value))}
-          inputProps={{
-            min: 1,
-            max: getMinNumber(),
-            type: "number",
-            "aria-labelledby": "input-slider",
-          }}
-        />
-      </div> */}
     </Container>
   );
 }

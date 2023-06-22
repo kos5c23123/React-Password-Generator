@@ -9,13 +9,12 @@ import TextField from "@mui/material/TextField";
 import Slider from "@mui/material/Slider";
 import Button from "@mui/material/Button";
 
-
-import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import LoopIcon from "@mui/icons-material/Loop";
 
 import {
   Title,
   Container,
-  PassowrdContent,
+  PasswordContent,
   NewIconButton,
   LengthContainer,
   Content,
@@ -25,21 +24,38 @@ const symbolChar = /^[!@#$%^&*]+$/;
 
 const WordList = Object.values(word);
 
+const symbolOptions = ["!", "@", "#", "$", "%", "^", "&", "*"];
+
+const defaultPassphrase = () => {
+  let retVal = "";
+  for (let i = 0; i < 3; i++) {
+    const randomWord = WordList[Math.floor(Math.random() * WordList.length)];
+    retVal += randomWord.charAt(0).toUpperCase() + randomWord.slice(1);
+    retVal += Math.floor(Math.random() * 10);
+    retVal += "@";
+  }
+  return retVal;
+};
+
 export default function Passphrase() {
-  const [passphrase, setPassphrase] = useState<string>("");
-  const [length, setLength] = useState<number>(3);
-  const [symbol, setSymbol] = useState<string>("@");
-  const [isUppercase, setIsUppercase] = useState<boolean>(true);
-  const [isNumber, setIsNumber] = useState<boolean>(true);
-  const [click, setClick] = useState<boolean>(false);
+  const [passphrase, setPassphrase] = useState(() => defaultPassphrase());
+  const [length, setLength] = useState(3);
+  const [symbol, setSymbol] = useState("@");
+  const [isUppercase, setIsUppercase] = useState(true);
+  const [isNumber, setIsNumber] = useState(true);
 
   const handleChange = (event: SelectChangeEvent) => {
     setSymbol(event.target.value);
   };
 
-  useEffect(() => {
+  const validateLength = (value: number) => {
+    let validatedValue = Math.min(Math.max(value, 3), 10);
+    return validatedValue;
+  };
+
+  const ChangePassphrase = () => {
     let retVal = "";
-    for (let i = 0; i < length; i++) {
+    for (let i = 0; i < validateLength(length); i++) {
       const randomWord = WordList[Math.floor(Math.random() * WordList.length)];
       if (isUppercase) {
         retVal += randomWord.charAt(0).toUpperCase() + randomWord.slice(1);
@@ -53,12 +69,30 @@ export default function Passphrase() {
         retVal += symbol;
       }
     }
-    setPassphrase(retVal);
-  }, [length, symbol, isUppercase, isNumber, click]);
+    return retVal;
+  };
+
+  useEffect(() => {
+    const passphrase = ChangePassphrase();
+    setPassphrase(passphrase);
+  }, [length, symbol, isUppercase, isNumber]);
+
+  const handleGeneratePassphrase = () => {
+    const passphrase = ChangePassphrase();
+    setPassphrase(passphrase);
+  };
+
+  const handleLengthInputChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    let value = Number(event.target.value);
+    setLength(validateLength(value));
+  };
+
   return (
     <Container>
       <Title>Generated Password</Title>
-      <PassowrdContent>
+      <PasswordContent>
         <TextField
           id="standard-search"
           type="search"
@@ -78,11 +112,11 @@ export default function Passphrase() {
         <NewIconButton
           color="primary"
           aria-label="Copy"
-          onClick={() => navigator.clipboard.writeText(passphrase)}
+          onClick={handleGeneratePassphrase}
         >
-          <ContentCopyIcon />
+          <LoopIcon />
         </NewIconButton>
-      </PassowrdContent>
+      </PasswordContent>
       <Title>Lengths</Title>
       <LengthContainer>
         <Slider
@@ -95,12 +129,7 @@ export default function Passphrase() {
         <Input
           value={length}
           size="small"
-          onChange={(e) => {
-            let value = Number(e.target.value);
-            if (value > 10) value = 10;
-            if (value < 3) value = 3;
-            setLength(value as number);
-          }}
+          onChange={handleLengthInputChange}
           inputProps={{
             min: 3,
             max: 10,
@@ -130,50 +159,49 @@ export default function Passphrase() {
             boxShadow: "none",
             ".MuiOutlinedInput-notchedOutline": { border: 0 },
             "& .MuiSvgIcon-root": {
-              color: "white"
-          }
+              color: "white",
+            },
           }}
           MenuProps={{
             PaperProps: {
               sx: {
-                bgcolor: '#02103f',
-                color: '#fff',
+                bgcolor: "#02103f",
+                color: "#fff",
               },
             },
           }}
         >
-          <MenuItem value={"!"}>!</MenuItem>
-          <MenuItem value={"@"}>@</MenuItem>
-          <MenuItem value={"#"}>#</MenuItem>
-          <MenuItem value={"$"}>$</MenuItem>
-          <MenuItem value={"%"}>%</MenuItem>
-          <MenuItem value={"^"}>^</MenuItem>
-          <MenuItem value={"&"}>&</MenuItem>
-          <MenuItem value={"*"}>*</MenuItem>
+          {symbolOptions.map((option) => (
+            <MenuItem key={option} value={option}>
+              {option}
+            </MenuItem>
+          ))}
         </Select>
       </Content>
       <Content>
         Uppercase
         <Checkbox
           checked={isUppercase}
-          onChange={() => setIsUppercase(!isUppercase)}
+          onChange={() => setIsUppercase((prevIsUppercase) => !prevIsUppercase)}
         />
       </Content>
       <Content>
         Number
-        <Checkbox checked={isNumber} onChange={() => setIsNumber(!isNumber)} />
+        <Checkbox
+          checked={isNumber}
+          onChange={() => setIsNumber((prevIsNumber) => !prevIsNumber)}
+        />
       </Content>
       <Button
         variant="contained"
         fullWidth
-        onClick={() => setClick(!click)}
+        onClick={() => navigator.clipboard.writeText(passphrase)}
         sx={{
           background: "linear-gradient(to right bottom, #0065e0, #6B0AC9)",
         }}
       >
-        Generate New Password
+        Copy Password
       </Button>
     </Container>
-    
   );
 }
