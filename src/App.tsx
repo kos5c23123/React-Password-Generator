@@ -7,14 +7,18 @@ import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 
 import { styled } from "@mui/material/styles";
 
-const Button = styled(ToggleButton)({
-  color: "#ffffff",
-  fontWeight: "bold",
-  "&.Mui-selected, &.Mui-selected:hover": {
-    color: "#ffffff",
-    backgroundColor: "#fc9003",
-  },
-});
+const Button = styled(ToggleButton)`
+  && {
+    color: #ffffff;
+    font-weight: bold;
+    
+    &.Mui-selected, &.Mui-selected:hover {
+      color: #ffffff;
+      background-color: #fc9003;
+    }
+  }
+`;
+
 
 export default function App() {
   const [alignment, setAlignment] = useState<string>("Password");
