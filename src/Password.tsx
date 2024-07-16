@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useReducer } from "react";
 import { Checkbox, Slider, Input, TextField, Button } from "@mui/material";
-import LoopIcon from '@mui/icons-material/Loop';
+import LoopIcon from "@mui/icons-material/Loop";
 
 import {
   Title,
@@ -10,6 +10,21 @@ import {
   LengthContainer,
   Content,
 } from "./CustomComponent";
+
+interface State {
+  upperCase: boolean;
+  lowerCase: boolean;
+  numbers: boolean;
+  symbols: boolean;
+  lengths: number;
+}
+
+type Action =
+  | { type: "upperCase"; payload: boolean }
+  | { type: "lowerCase"; payload: boolean }
+  | { type: "numbers"; payload: boolean }
+  | { type: "symbols"; payload: boolean }
+  | { type: "lengths"; payload: number };
 
 function defaultPassword(): string {
   const length = 8;
@@ -22,6 +37,21 @@ function defaultPassword(): string {
   return retVal;
 }
 
+const reducer = (state: State, action: Action) => {
+  switch (action.type) {
+    case "upperCase":
+      return { ...state, upperCase: action.payload };
+    case "lowerCase":
+      return { ...state, lowerCase: action.payload };
+    case "numbers":
+      return { ...state, numbers: action.payload };
+    case "symbols":
+      return { ...state, symbols: action.payload };
+    case "lengths":
+      return { ...state, lengths: action.payload };
+  }
+};
+
 const charOfUpperCase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const charOfLowerCase = "abcdefghijklmnopqrstuvwxyz";
 const charOfNumbers = "0123456789";
@@ -29,20 +59,24 @@ const charOfSymbols = "!@#$%^&*";
 
 export default function Password() {
   const [password, setPassword] = useState<string>(() => defaultPassword());
-  const [uppercase, setUppercase] = useState<boolean>(true);
-  const [lowercase, setLowercase] = useState<boolean>(true);
-  const [numbers, setNumbers] = useState<boolean>(true);
-  const [symbols, setSymbols] = useState<boolean>(true);
-  const [length, setLength] = useState<number>(8);
+
+  const initState = {
+    upperCase: true,
+    lowerCase: true,
+    numbers: true,
+    symbols: true,
+    lengths: 8,
+  };
+  const [state, dispatch] = useReducer(reducer, initState);
 
   const ChangePassword = () => {
     let charset = "";
-    if (uppercase) charset += charOfUpperCase;
-    if (lowercase) charset += charOfLowerCase;
-    if (numbers) charset += charOfNumbers;
-    if (symbols) charset += charOfSymbols;
+    if (state.upperCase) charset += charOfUpperCase;
+    if (state.lowerCase) charset += charOfLowerCase;
+    if (state.numbers) charset += charOfNumbers;
+    if (state.symbols) charset += charOfSymbols;
     let retVal = "";
-    for (let i = 0, n = charset.length; i < length; ++i) {
+    for (let i = 0, n = charset.length; i < state.lengths; ++i) {
       retVal += charset.charAt(Math.floor(Math.random() * n));
     }
     return retVal;
@@ -51,23 +85,7 @@ export default function Password() {
   useEffect(() => {
     const password = ChangePassword();
     setPassword(password);
-  }, [uppercase, lowercase, numbers, symbols, length]);
-
-  const handleUppercaseChange = () => {
-    setUppercase(!uppercase);
-  };
-
-  const handleLowercaseChange = () => {
-    setLowercase(!lowercase);
-  };
-
-  const handleNumbersChange = () => {
-    setNumbers(!numbers);
-  };
-
-  const handleSymbolsChange = () => {
-    setSymbols(!symbols);
-  };
+  }, [state]);
 
   const handleGeneratePassword = () => {
     const password = ChangePassword();
@@ -80,7 +98,7 @@ export default function Password() {
     let value = Number(event.target.value);
     if (value > 128) value = 128;
     if (value < 6) value = 6;
-    setLength(value);
+    dispatch({ type: "lengths", payload: value });
 
     const password = ChangePassword();
     setPassword(password);
@@ -118,13 +136,13 @@ export default function Password() {
       <LengthContainer>
         <Slider
           aria-label="length"
-          value={length}
-          onChange={(event, newValue) => setLength(newValue as number)}
+          value={state.lengths}
+          onChange={(event, newValue) => dispatch({ type: "lengths", payload: newValue as number })}
           min={6}
           max={128}
         />
         <Input
-          value={length}
+          value={state.lengths}
           size="small"
           onChange={handleLengthInputChange}
           inputProps={{
@@ -144,19 +162,39 @@ export default function Password() {
       <Title>Setting</Title>
       <Content>
         A-Z
-        <Checkbox checked={uppercase} onChange={handleUppercaseChange} />
+        <Checkbox
+          checked={state.upperCase}
+          onChange={() =>
+            dispatch({ type: "upperCase", payload: !state.upperCase })
+          }
+        />
       </Content>
       <Content>
         a-z
-        <Checkbox checked={lowercase} onChange={handleLowercaseChange} />
+        <Checkbox
+          checked={state.lowerCase}
+          onChange={() =>
+            dispatch({ type: "lowerCase", payload: !state.lowerCase })
+          }
+        />
       </Content>
       <Content>
         0-9
-        <Checkbox checked={numbers} onChange={handleNumbersChange} />
+        <Checkbox
+          checked={state.numbers}
+          onChange={() =>
+            dispatch({ type: "numbers", payload: !state.numbers })
+          }
+        />
       </Content>
       <Content>
         !@#$%
-        <Checkbox checked={symbols} onChange={handleSymbolsChange} />
+        <Checkbox
+          checked={state.symbols}
+          onChange={() =>
+            dispatch({ type: "symbols", payload: !state.symbols })
+          }
+        />
       </Content>
       <Button
         variant="contained"
