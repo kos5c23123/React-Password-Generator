@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useReducer } from "react";
 import word from "./dictionary.json";
 
 import Input from "@mui/material/Input";
@@ -26,6 +26,19 @@ const WordList = Object.values(word);
 
 const symbolOptions = ["!", "@", "#", "$", "%", "^", "&", "*"];
 
+interface State {
+  upperCase: boolean;
+  numbers: boolean;
+  symbols: string;
+  lengths: number;
+}
+
+type Action =
+  | { type: "upperCase"; payload: boolean }
+  | { type: "numbers"; payload: boolean }
+  | { type: "symbols"; payload: string }
+  | { type: "lengths"; payload: number };
+
 const defaultPassphrase = () => {
   let retVal = "";
   for (let i = 0; i < 3; i++) {
@@ -37,15 +50,33 @@ const defaultPassphrase = () => {
   return retVal;
 };
 
+const reducer = (state: State, action: Action) => {
+  switch (action.type) {
+    case "upperCase":
+      return { ...state, upperCase: action.payload };
+    case "numbers":
+      return { ...state, numbers: action.payload };
+    case "symbols":
+      return { ...state, symbols: action.payload };
+    case "lengths":
+      return { ...state, lengths: action.payload };
+  }
+};
+
 export default function Passphrase() {
   const [passphrase, setPassphrase] = useState(() => defaultPassphrase());
-  const [length, setLength] = useState(3);
-  const [symbol, setSymbol] = useState("@");
-  const [isUppercase, setIsUppercase] = useState(true);
-  const [isNumber, setIsNumber] = useState(true);
+
+  const initState = {
+    upperCase: true,
+    numbers: true,
+    symbols: "@",
+    lengths: 3,
+  };
+
+  const [state, dispatch] = useReducer(reducer, initState);
 
   const handleChange = (event: SelectChangeEvent) => {
-    setSymbol(event.target.value);
+    dispatch({ type: "symbols", payload: event.target.value });
   };
 
   const validateLength = (value: number) => {
@@ -55,18 +86,18 @@ export default function Passphrase() {
 
   const ChangePassphrase = () => {
     let retVal = "";
-    for (let i = 0; i < validateLength(length); i++) {
+    for (let i = 0; i < validateLength(state.lengths); i++) {
       const randomWord = WordList[Math.floor(Math.random() * WordList.length)];
-      if (isUppercase) {
+      if (state.upperCase) {
         retVal += randomWord.charAt(0).toUpperCase() + randomWord.slice(1);
       } else {
         retVal += randomWord;
       }
-      if (isNumber) {
+      if (state.numbers) {
         retVal += Math.floor(Math.random() * 10);
       }
-      if (symbolChar.test(symbol)) {
-        retVal += symbol;
+      if (symbolChar.test(state.symbols)) {
+        retVal += state.symbols;
       }
     }
     return retVal;
@@ -75,7 +106,7 @@ export default function Passphrase() {
   useEffect(() => {
     const passphrase = ChangePassphrase();
     setPassphrase(passphrase);
-  }, [length, symbol, isUppercase, isNumber]);
+  }, [state]);
 
   const handleGeneratePassphrase = () => {
     const passphrase = ChangePassphrase();
@@ -86,7 +117,7 @@ export default function Passphrase() {
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
     let value = Number(event.target.value);
-    setLength(validateLength(value));
+    dispatch({ type: "lengths", payload: validateLength(value) });
   };
 
   return (
@@ -121,13 +152,18 @@ export default function Passphrase() {
       <LengthContainer>
         <Slider
           aria-label="length"
-          value={length}
-          onChange={(event, newValue) => setLength(newValue as number)}
+          value={state.lengths}
+          onChange={(event, newValue) =>
+            dispatch({
+              type: "lengths",
+              payload: validateLength(newValue as number),
+            })
+          }
           min={3}
           max={10}
         />
         <Input
-          value={length}
+          value={state.lengths}
           size="small"
           onChange={handleLengthInputChange}
           inputProps={{
@@ -150,7 +186,7 @@ export default function Passphrase() {
         <Select
           labelId="symbol"
           id="symbol"
-          value={symbol}
+          value={state.symbols}
           label="symbol"
           onChange={handleChange}
           sx={{
@@ -181,15 +217,19 @@ export default function Passphrase() {
       <Content>
         Uppercase
         <Checkbox
-          checked={isUppercase}
-          onChange={() => setIsUppercase((prevIsUppercase) => !prevIsUppercase)}
+          checked={state.upperCase}
+          onChange={() =>
+            dispatch({ type: "upperCase", payload: !state.upperCase })
+          }
         />
       </Content>
       <Content>
         Number
         <Checkbox
-          checked={isNumber}
-          onChange={() => setIsNumber((prevIsNumber) => !prevIsNumber)}
+          checked={state.numbers}
+          onChange={() =>
+            dispatch({ type: "numbers", payload: !state.numbers })
+          }
         />
       </Content>
       <Button
