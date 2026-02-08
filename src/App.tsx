@@ -1,68 +1,54 @@
-import React, { useState } from "react";
-import Passphrase from "./Passphrase";
-import Password from "./Password";
-
-import ToggleButton from "@mui/material/ToggleButton";
-import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
-
-import { styled } from "@mui/material/styles";
-
-const Button = styled(ToggleButton)`
-  && {
-    color: #ffffff;
-    font-weight: bold;
-
-    &.Mui-selected,
-    &.Mui-selected:hover {
-      color: #ffffff;
-      background-color: #fc9003;
-    }
-  }
-`;
+import React, { useState } from 'react';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import Password from './components/Password';
+import Passphrase from './components/Passphrase';
+import TabSwitcher from './components/TabSwitcher';
+import { loadActiveTab, saveActiveTab } from './utils/storage';
 
 export default function App() {
-  const [alignment, setAlignment] = useState<string>("Password");
+  const [activeTab, setActiveTab] = useState(() => loadActiveTab());
 
-  const handleAlignment = (
-    event: React.MouseEvent<HTMLElement>,
-    newAlignment: string
-  ) => {
-    if (newAlignment !== null) {
-      setAlignment(newAlignment);
-    }
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    saveActiveTab(tab);
   };
+
   return (
-    <div
-      style={{
-        backgroundColor: "#01062a",
-        color: "#fff",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        alignItems: "center",
-        height: "100vh",
-        minWidth: "500px"
+    <Box
+      sx={{
+        minHeight: '100vh',
+        backgroundColor: '#0a0a0f',
+        display: 'flex',
+        justifyContent: 'center',
+        py: { xs: 3, sm: 5 },
+        px: 2,
       }}
     >
-      <div style={{width: 330}}>
-        <ToggleButtonGroup
-          value={alignment}
-          exclusive
-          onChange={handleAlignment}
-          fullWidth
+      <Box
+        sx={{
+          width: '100%',
+          maxWidth: 480,
+        }}
+      >
+        <Typography
           sx={{
-            background: "#02103f",
+            fontSize: { xs: 22, sm: 26 },
+            fontWeight: 700,
+            textAlign: 'center',
+            mb: 3,
+            background: 'linear-gradient(135deg, #00f5d4, #b8ff00)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
           }}
         >
-          <Button value="Password">
-            <div>Password</div>
-          </Button>
-          <Button value="Passphrase">
-            <div>Passphrase</div>
-          </Button>
-        </ToggleButtonGroup>
-      </div>
-      {alignment === "Password" ? <Password /> : <Passphrase />}
-    </div>
+          Password Generator
+        </Typography>
+
+        <TabSwitcher activeTab={activeTab} onChange={handleTabChange} />
+
+        {activeTab === 'password' ? <Password /> : <Passphrase />}
+      </Box>
+    </Box>
   );
 }
